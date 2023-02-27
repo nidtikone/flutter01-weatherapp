@@ -1,6 +1,7 @@
-import 'dart:js';
+
 
 import'package:flutter/material.dart';
+import '../Components/Location.dart';
 import '../Components/textfield.dart';
 import '../Constants.dart' as constant;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,10 +17,24 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
 
   late String email, password;
+  int myvar=1;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    apiCall();
+  }
+  void apiCall() async{
+    var location =await  determinePosition();
+    myvar=await constant.apiInstance.getLocation(
+      location.latitude.toString(),location.longitude.toString()
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final _auth =FirebaseAuth.instance;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: constant.textPrimary,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -51,7 +66,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     )
                   )
                 ),
-                  onPressed: ()async{},
+                  onPressed: ()async{
+                  try {
+                    final newUser = await _auth.signInWithEmailAndPassword(
+                        email: email, password: password);
+                    if (newUser.user != null && myvar != 0) {
+
+                      Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) =>MainScreen()));
+
+                    }
+                  }
+                     catch(e){
+                       debugPrint('$e');
+
+
+
+                  }
+                  },
                   child: Text('Login',
                 style: TextStyle(
                   fontSize: 40.0,
@@ -59,7 +90,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
 
               ),
-              )),
+              ),
+              ),
             ),
           ),
           Expanded(child: Container())
@@ -71,8 +103,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   }
 
-  _pushToNextScreen(){
-    Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) =>MainScreen())
-  }
+
 }
 
